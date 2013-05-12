@@ -1,0 +1,8 @@
+/backup
+*.bak
+*.ppu
+*.ppw
+*.o
+*.so
+*~
+*.compiled
