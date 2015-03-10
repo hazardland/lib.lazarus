@@ -64,7 +64,7 @@ end;
 
 function BetweenLast (This, That, InThat: String): String;
 begin
-  BetweenLast := BeforeLast (That,AfterLast(This, InThat) );
+  BetweenLast := AfterLast (This,BeforeLast(That, InThat) );
 end;
 
 function Implode (Source: TArrayIntegerString; Separator: String): String;

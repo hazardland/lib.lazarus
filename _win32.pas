@@ -1,55 +1,59 @@
-unit _System;
+unit _Win32;
 
 interface
 
-uses Windows, SysUtils, Winsock, Classes;
+uses Windows, SysUtils, Winsock, Classes, Strings, registry;
 
-procedure SystemDesktopEnable;
-procedure SystemDesktopDisable;
-procedure SystemTaskbarDisable;
-procedure SystemTaskbarEnable;
+procedure DesktopEnable;
+procedure DesktopDisable;
+procedure TaskbarDisable;
+procedure TaskbarEnable;
 
-procedure SystemTaskbarHide;
-procedure SystemTaskbarShow;
-procedure SystemWindowsMinimize;
+procedure TaskbarHide;
+procedure TaskbarShow;
+procedure WindowsMinimize;
 
-procedure SystemShutdownForce;
-procedure SystemRestartForce;
-procedure SystemShutDown;
-procedure SystemRestart;
+procedure ShutdownForce;
+procedure RestartForce;
+procedure ShutDown;
+procedure Restart;
 
-function SystemScreenResolutionSet(Width, Height: integer): longint;
-function SystemComputerName: string;
-function SystemUserLogin: string;
-function SystemIp: string;
+function ScreenSet(Width, Height: integer): longint;
+function ComputerName: string;
 
+function UserName: string;
+
+function Ip: string;
+
+function RegistryRead (Root:HKEY; Key, Name: string): string;
+function RegistryWrite (Root:HKEY; Key, Name, Value: String): Boolean;
 
 implementation
 
 
-procedure SystemDesktopEnable;
+procedure DesktopEnable;
 begin
   EnableWindow(FindWindowEx(FindWindow('Progman', nil), 0,
     'ShellDll_DefView', nil), False);
 end;
 
-procedure SystemDesktopDisable;
+procedure DesktopDisable;
 begin
   EnableWindow(FindWindowEx(FindWindow('Progman', nil), 0,
     'ShellDll_DefView', nil), True);
 end;
 
-procedure SystemTaskbarDisable;
+procedure TaskbarDisable;
 begin
   EnableWindow(FindWindow('Shell_TrayWnd', nil), False);
 end;
 
-procedure SystemTaskbarEnable;
+procedure TaskbarEnable;
 begin
   EnableWindow(FindWindow('Shell_TrayWnd', nil), True);
 end;
 
-function SystemIp: string;
+function Ip: string;
 type
   TaPInAddr = array [0..10] of PInAddr;
   PaPInAddr = ^TaPInAddr;
@@ -77,7 +81,7 @@ begin
   WSACleanup;
 end;
 
-procedure SystemTaskbarHide;
+procedure TaskbarHide;
 var
   wndClass: array[0..50] of char;
   wndHandle: THandle;
@@ -87,7 +91,7 @@ begin
   ShowWindow(wndHandle, SW_HIDE);
 end;
 
-procedure SystemTaskbarShow;
+procedure TaskbarShow;
 var
   wndClass: array[0..50] of char;
   wndHandle: THandle;
@@ -97,7 +101,7 @@ begin
   ShowWindow(wndHandle, SW_SHOW);
 end;
 
-procedure SystemWindowsMinimize;
+procedure WindowsMinimize;
 begin
   Keybd_event(VK_LWIN, 0, 0, 0);
   Keybd_event(byte('M'), 0, 0, 0);
@@ -105,7 +109,7 @@ begin
   Keybd_event(VK_LWIN, 0, KEYEVENTF_KEYUP, 0);
 end;
 
-function SystemPrivilegeSet(sPrivilegeName: string; bEnabled: boolean): boolean;
+function PrivilegeSet(sPrivilegeName: string; bEnabled: boolean): boolean;
 var
   TPPrev, TP: TTokenPrivileges;
   Token: THandle;
@@ -122,8 +126,7 @@ begin
   begin
     if (bEnabled) then
     begin
-      TP.Privileges[0].Attributes :=
-        SE_PRIVILEGE_ENABLED;
+      TP.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
     end
     else
     begin
@@ -155,17 +158,17 @@ end;
 //   EWX_POWEROFF
 //   EWX_FORCE    : terminate processes
 
-function SystemExit(iFlags: integer): boolean;
+function Exit(iFlags: integer): boolean;
 begin
   Result := True;
-  if (SystemPrivilegeSet('SeShutdownPrivilege', True)) then
+  if (PrivilegeSet('SeShutdownPrivilege', True)) then
   begin
     if (not ExitWindowsEx(iFlags, 0)) then
     begin
       // handle errors...
       Result := False;
     end;
-    SystemPrivilegeSet('SeShutdownPrivilege', False);
+    PrivilegeSet('SeShutdownPrivilege', False);
   end
   else
   begin
@@ -175,29 +178,29 @@ begin
 end;
 
 
-procedure SystemShutdownForce;
+procedure ShutdownForce;
 begin
-  SystemExit(EWX_SHUTDOWN + EWX_FORCE + EWX_POWEROFF);
+  Exit(EWX_SHUTDOWN + EWX_FORCE + EWX_POWEROFF);
 end;
 
-procedure SystemRestartForce;
+procedure RestartForce;
 begin
-  SystemExit(EWX_REBOOT + EWX_FORCE);
+  Exit(EWX_REBOOT + EWX_FORCE);
 end;
 
-procedure SystemShutdown;
+procedure Shutdown;
 begin
-  SystemExit(EWX_SHUTDOWN + EWX_POWEROFF);
+  Exit(EWX_SHUTDOWN + EWX_POWEROFF);
 end;
 
-procedure SystemRestart;
+procedure Restart;
 begin
-  SystemExit(EWX_REBOOT);
+  Exit(EWX_REBOOT);
 end;
 
 
 
-function SystemUserLogin: string;
+function UserName: string;
 const
   cnMaxLen = 254;
 var
@@ -213,7 +216,7 @@ begin
     Result := '';
 end;
 
-function SystemComputerName: string;
+function ComputerName: string;
 const
   cnMaxLen = 254;
 var
@@ -230,7 +233,7 @@ begin
 end;
 
 
-function SystemScreenResolutionSet(Width, Height: integer): longint;
+function ScreenSet(Width, Height: integer): longint;
 var
   DeviceMode: TDeviceMode;
 begin
@@ -244,7 +247,44 @@ begin
   Result := ChangeDisplaySettings(DeviceMode, CDS_UPDATEREGISTRY);
 end;
 
+function RegistryRead(Root:HKEY; Key, Name: string): string;
+var
+  Registry: TRegistry;
+begin
+  Registry := TRegistry.Create;
+  Registry.RootKey := Root;
+  if (Registry.OpenKeyReadOnly(Key)) then
+  begin
+       Result := Registry.ReadString(Name);
+  end;
+  Registry.Free;
+end;
 
+function RegistryWrite (Root:HKEY; Key, Name, Value: String): Boolean;
+var
+  Registry: TRegistry;
+begin
+
+  Result := False;
+  Registry := TRegistry.Create;
+  Registry.RootKey := Root;
+  if not (Registry.KeyExists(Key)) then
+  begin
+     WriteLn(Key+' does not exist');
+     Registry.CreateKey(Key);
+  end;
+  if (Registry.OpenKey(Key,True)) then
+  begin
+       //Try
+          Registry.WriteString(Name,Value);
+          Registry.CloseKey;
+          Result := True;
+          WriteLn('Writing registry '+Key);
+       //finally
+       //end;
+  end;
+  Registry.Free;
+end;
 
 end.
 

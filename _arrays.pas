@@ -34,6 +34,7 @@ type
   TArrayStringInteger = specialize TArray <String, Integer>;
   TArrayStringString = specialize TArray <String, String>;
   TArrayIntegerInteger = specialize TArray <String, String>;
+  TArrayIntegerBoolean = specialize TArray <Integer, Boolean>;
 
 implementation
 
