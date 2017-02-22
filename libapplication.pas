@@ -1,4 +1,4 @@
-unit _Application;
+unit LibApplication;
 
 {$mode objfpc}{$H+}
 

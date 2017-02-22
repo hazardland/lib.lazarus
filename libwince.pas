@@ -1,4 +1,4 @@
-unit _Wince;
+unit LibWince;
 
 {$mode objfpc}
 

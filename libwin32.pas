@@ -1,4 +1,4 @@
-unit _Win32;
+unit LibWin32;
 
 interface
 

@@ -1,11 +1,11 @@
-unit _Strings;
+unit LibString;
 
 {$mode objfpc}
 
 interface
 
 uses
-  Classes, SysUtils, StrUtils, _Arrays;
+  Classes, SysUtils, StrUtils, LibArray;
 
 function Before (This, InThat: String): String;
 function After (This, InThat: String): String;

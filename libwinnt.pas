@@ -1,4 +1,4 @@
-unit _WinNT;
+unit LibWinNT;
 
 interface
 
