@@ -5,7 +5,7 @@ unit LibFile;
 interface
 
 uses
-  Classes, SysUtils, strutils;
+  Classes, SysUtils, strutils, LazFileUtils;
 
 type TFile = class
   private
@@ -23,6 +23,7 @@ type TFile = class
    function Exists: Boolean;
    destructor Close;
   end;
+function FileDate (Path:String): LongInt;
 
 implementation
 
@@ -108,6 +109,11 @@ implementation
   begin
      Self.Stream.Free;
      inherited Destroy;
+  end;
+
+  function FileDate (Path:String): LongInt;
+  begin
+       Result:=FileAgeUTF8(Path);
   end;
 
 end.
