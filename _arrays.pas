@@ -25,8 +25,10 @@ public
   function Foreach: Boolean;
   function Count: Integer;
   procedure Sort;
+  procedure Rsort;
   procedure Delete (Element: TIndex);
   function Exists (What: TIndex): Boolean;
+  function Contains (What: TValue): Boolean;
 end;
 
 type
@@ -142,25 +144,73 @@ constructor TArray.Create;
    end;
  end;
 
- procedure TArray.Sort;
+ function TArray.Contains (What: TValue): Boolean;
  var
    Current,Records: Integer;
+ begin
+   Result := False;
+   Records := Length (Indexes);
+   for Current:=0 to Records-1 do
+   begin
+     if Values[Current]=What then
+     begin
+       Result := True;
+       break;
+     end;
+   end;
+ end;
+
+ procedure TArray.Sort;
+ var
+   Current,Records,Candidate: Integer;
    ValueBuffer: TValue;
    IndexBuffer: TIndex;
  begin
    Records := Length (Indexes);
-   ValueBuffer := Values[0];
-   for Current:=1 to Records-1 do
+   for Current:=0 to Records-1 do
    begin
-        if (ValueBuffer>Values[Current]) then
-        begin
-          Values[Current-1]:= Values[Current];
-          Values[Current] := ValueBuffer;
-          IndexBuffer := Indexes[Current-1];
-          Indexes[Current-1] := Indexes[Current];
-          Indexes[Current] := IndexBuffer;
-        end;
-        ValueBuffer := Values[Current];
+      if Current<Records-1 then
+      begin
+         for Candidate:=Current+1 to Records-1 do
+         begin
+             if (Indexes[Current]>Indexes[Candidate]) then
+             begin
+               ValueBuffer := Values[Candidate];
+               Values[Candidate]:= Values[Current];
+               Values[Current] := ValueBuffer;
+               IndexBuffer := Indexes[Candidate];
+               Indexes[Candidate]:= Indexes[Current];
+               Indexes[Current] := IndexBuffer;
+             end;
+         end;
+      end
+   end;
+ end;
+
+ procedure TArray.Rsort;
+ var
+   Current,Records,Candidate: Integer;
+   ValueBuffer: TValue;
+   IndexBuffer: TIndex;
+ begin
+   Records := Length (Indexes);
+   for Current:=0 to Records-1 do
+   begin
+      if Current<Records-1 then
+      begin
+         for Candidate:=Current+1 to Records-1 do
+         begin
+             if (Indexes[Current]<Indexes[Candidate]) then
+             begin
+               ValueBuffer := Values[Candidate];
+               Values[Candidate]:= Values[Current];
+               Values[Current] := ValueBuffer;
+               IndexBuffer := Indexes[Candidate];
+               Indexes[Candidate]:= Indexes[Current];
+               Indexes[Current] := IndexBuffer;
+             end;
+         end;
+      end
    end;
  end;
 
